@@ -128,6 +128,10 @@ func DocHandler(c *gin.Context) {
 
 		json.Unmarshal(datosJson, &jsonFormat)
 		dataToSave := jsonFormat["doc_content"]
+		if dataToSave == nil {
+			c.String(http.StatusBadRequest, "Missing doc_content")
+			return
+		}
 		bytes, _ := json.Marshal(dataToSave)
 		bytesWritten, err := MemManager.saveInfo(username, docId, bytes)
 
@@ -143,6 +147,10 @@ func DocHandler(c *gin.Context) {
 
 		json.Unmarshal(datosJson, &jsonFormat)
 		dataToSave := jsonFormat["doc_content"]
+		if dataToSave == nil {
+			c.String(http.StatusBadRequest, "Missing doc_content")
+			return
+		}
 		bytes, _ := json.Marshal(dataToSave)
 		bytesWritten, err := MemManager.updateInfo(username, docId, bytes)
 

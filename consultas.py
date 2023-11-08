@@ -65,8 +65,8 @@ def PostDoc(token : str):
     ditAux["Acciones"] = ["Remover", "limpiar"]
     ditAux2 = {}
 
-    ditAux2[DOCUMENT] = data
-    resp = requests.post("http://127.0.0.1:8080/Alonso3/iot", headers=dit, data=json.dumps(ditAux2))
+    ditAux2[DOCUMENT] = ditAux
+    resp = requests.post("http://127.0.0.1:8080/Alonso3/recetasvarias", headers=dit, data=json.dumps(ditAux2))
     print(resp.content.decode())
 
 def PutDoc(token : str):
@@ -94,4 +94,4 @@ def DeleteDoc(token : str):
     resp = requests.delete("http://127.0.0.1:8080/Alonso3/proporciones", headers=dit)
     print(resp.content.decode())
 token = login("Alonso3", "qwe")
-GETDoc(token)
+PostDoc(token)
