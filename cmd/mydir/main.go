@@ -74,19 +74,22 @@ func parseParams(params gin.Params, token string) (string, string, error) {
 	return username, docId, nil
 }
 
-/*
 func parseBody(body io.ReadCloser) ([]byte, error) {
 	datosJson, _ := io.ReadAll(body)
 	var jsonFormat map[string]interface{}
+	var dataToSave []byte
 
 	json.Unmarshal(datosJson, &jsonFormat)
 	tempData := jsonFormat["doc_content"]
 	if tempData == nil {
-
+		return dataToSave, &MissingDocContent{"Missing doc_content"}
 	}
 
+	dataToSave, _ = json.Marshal(tempData)
+
+	return dataToSave, nil
+
 }
-*/
 
 func DocHandler(c *gin.Context) {
 	authHeader := c.Request.Header.Get("Authorization")
@@ -103,16 +106,11 @@ func DocHandler(c *gin.Context) {
 	}
 
 	if c.Request.Method == "POST" {
-		var datosJson, _ = io.ReadAll(c.Request.Body)
-		var jsonFormat map[string]interface{}
-
-		json.Unmarshal(datosJson, &jsonFormat)
-		dataToSave := jsonFormat["doc_content"]
-		if dataToSave == nil {
-			c.String(http.StatusBadRequest, "Missing doc_content")
+		bytes, err := parseBody(c.Request.Body)
+		if err != nil {
+			c.String(http.StatusBadRequest, err.Error())
 			return
 		}
-		bytes, _ := json.Marshal(dataToSave)
 		bytesWritten, err := MemManager.saveInfo(username, docId, bytes)
 
 		if err != nil {
@@ -122,22 +120,17 @@ func DocHandler(c *gin.Context) {
 		response := createDocResponse(bytesWritten)
 		c.IndentedJSON(http.StatusOK, response)
 	} else if c.Request.Method == "PUT" {
-		var datosJson, _ = io.ReadAll(c.Request.Body)
-		var jsonFormat map[string]interface{}
-
-		json.Unmarshal(datosJson, &jsonFormat)
-		dataToSave := jsonFormat["doc_content"]
-		if dataToSave == nil {
-			c.String(http.StatusBadRequest, "Missing doc_content")
-			return
+		bytes, err := parseBody(c.Request.Body)
+		if err != nil {
+			c.String(http.StatusBadRequest, err.Error())
 		}
-		bytes, _ := json.Marshal(dataToSave)
-		bytesWritten, err := MemManager.updateInfo(username, docId, bytes)
 
+		bytesWritten, err := MemManager.updateInfo(username, docId, bytes)
 		if err != nil {
 			c.String(http.StatusInternalServerError, err.Error())
 			return
 		}
+
 		response := createDocResponse(bytesWritten)
 		c.IndentedJSON(http.StatusOK, response)
 	} else if c.Request.Method == "GET" {

@@ -64,3 +64,11 @@ type MissingDocContent struct {
 func (e *MissingDocContent) Error() string {
 	return e.Message
 }
+
+type MissingDocContent struct {
+	Message string
+}
+
+func (e *MissingDocContent) Error() string {
+	return e.Message
+}
