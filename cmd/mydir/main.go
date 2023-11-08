@@ -96,32 +96,58 @@ func versionHandler(c *gin.Context) {
 	c.String(http.StatusOK, "0.1.0")
 }
 
-func DocHandler(c *gin.Context) {
-	authHeader := c.Request.Header.Get("Authorization")
+func parseHeader(authHeader string) (string, error) {
 	if authHeader == "" {
-		c.String(http.StatusUnauthorized, "Missing Authorization token in the header")
-		return
+		return "", &MissingAuthHeader{"Missing Authorization Header in the request"}
 	}
 	words := strings.Split(authHeader, " ")
 	if len(words) != 2 {
-		c.String(http.StatusBadRequest, "Bad Authorization Header")
-		return
+		return "", &BadAuthHeader{"Malformed Authorization header, type is token token_id"}
 	}
-	token := words[1]
-	username := c.Param("username")
-	docId := c.Param("doc_id")
+	return words[1], nil
+}
+
+func parseParams(params gin.Params, token string) (string, string, error) {
+	username := params[0].Value
+	docId := params[1].Value
 	if !UsersL.UserExist(username) {
-		c.String(http.StatusUnauthorized, "User not registered in the system")
-		return
+		return "", "", &UserNotExists{username}
 	}
 	if !TokenL.tokenExists(token) {
-		c.String(http.StatusUnauthorized, "Your token has expired, refresh it in /login ")
-		return
+		return "", "", &TokenExpired{token}
 	}
 	if username != TokenL.getTokenOwner(token) {
-		c.String(http.StatusUnauthorized, "The username given is not the owner of the token")
+		return "", "", &NotOwner{username, token}
+	}
+	return username, docId, nil
+}
+
+func parseBody(body io.ReadCloser) ([]byte, error) {
+	datosJson, _ := io.ReadAll(body)
+	var jsonFormat map[string]interface{}
+
+	json.Unmarshal(datosJson, &jsonFormat)
+	tempData := jsonFormat["doc_content"]
+	if tempData == nil {
+
+	}
+
+}
+
+func DocHandler(c *gin.Context) {
+	authHeader := c.Request.Header.Get("Authorization")
+	token, err := parseHeader(authHeader)
+	if err != nil {
+		c.String(http.StatusBadRequest, err.Error())
 		return
 	}
+
+	username, docId, err := parseParams(c.Params, token)
+	if err != nil {
+		c.String(http.StatusUnauthorized, err.Error())
+		return
+	}
+
 	if c.Request.Method == "POST" {
 		var datosJson, _ = io.ReadAll(c.Request.Body)
 		var jsonFormat map[string]interface{}
