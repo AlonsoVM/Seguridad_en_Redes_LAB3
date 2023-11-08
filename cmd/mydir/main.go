@@ -97,7 +97,7 @@ func versionHandler(c *gin.Context) {
 	c.String(http.StatusOK, "0.1.0")
 }
 
-func postDocHandler(c *gin.Context) {
+func DocHandler(c *gin.Context) {
 	authHeader := c.Request.Header.Get("Authorization")
 	words := strings.Split(authHeader, " ")
 	token := words[1]
@@ -108,41 +108,60 @@ func postDocHandler(c *gin.Context) {
 		return
 	}
 	if !TokenL.tokenExists(token) {
-		c.String(http.StatusUnauthorized, "Your token has expired, refresh it in /login ", token)
+		c.String(http.StatusUnauthorized, "Your token has expired, refresh it in /login ")
 		return
 	}
 	if username != TokenL.getTokenOwner(token) {
 		c.String(http.StatusUnauthorized, "The username given is not the owner of the token")
 		return
 	}
-	var datosJson, _ = io.ReadAll(c.Request.Body)
-	bytesWritten := MemManager.saveInfo(username, docId, datosJson)
-	c.IndentedJSON(http.StatusOK, createDocResponse(bytesWritten))
+	if c.Request.Method == "POST" {
+		var datosJson, _ = io.ReadAll(c.Request.Body)
+		var jsonFormat map[string]interface{}
+
+		json.Unmarshal(datosJson, &jsonFormat)
+		dataToSave := jsonFormat["doc_content"]
+		bytes, _ := json.Marshal(dataToSave)
+		bytesWritten, err := MemManager.saveInfo(username, docId, bytes)
+
+		if err != nil {
+			c.String(http.StatusInternalServerError, err.Error())
+			return
+		}
+		response := createDocResponse(bytesWritten)
+		c.IndentedJSON(http.StatusOK, response)
+	} else if c.Request.Method == "PUT" {
+		var datosJson, _ = io.ReadAll(c.Request.Body)
+		var jsonFormat map[string]interface{}
+
+		json.Unmarshal(datosJson, &jsonFormat)
+		dataToSave := jsonFormat["doc_content"]
+		bytes, _ := json.Marshal(dataToSave)
+		bytesWritten, err := MemManager.updateInfo(username, docId, bytes)
+
+		if err != nil {
+			c.String(http.StatusInternalServerError, err.Error())
+			return
+		}
+		response := createDocResponse(bytesWritten)
+		c.IndentedJSON(http.StatusOK, response)
+	} else if c.Request.Method == "GET" {
+		data, err := MemManager.getInfo(username, docId)
+		if err != nil {
+			c.String(http.StatusInternalServerError, err.Error())
+			return
+		}
+		c.IndentedJSON(http.StatusOK, data)
+	} else if c.Request.Method == "DELETE" {
+		err := MemManager.removeInfo(username, docId)
+		if err != nil {
+			c.String(http.StatusInternalServerError, err.Error())
+			return
+		}
+		c.IndentedJSON(http.StatusOK, "{}")
+	}
 
 }
-
-func getDocHandler(c *gin.Context) {
-	authHeader := c.Request.Header.Get("Authorization")
-	words := strings.Split(authHeader, " ")
-	token := words[1]
-	username := c.Param("username")
-	docId := c.Param("doc_id")
-	if !UsersL.UserExist(username) {
-		c.String(http.StatusUnauthorized, "User not registered in the system")
-		return
-	}
-	if !TokenL.tokenExists(token) {
-		c.String(http.StatusUnauthorized, "Your token has expired, refresh it in /login ", token)
-		return
-	}
-	if username != TokenL.getTokenOwner(token) {
-		c.String(http.StatusUnauthorized, "The username given is not the owner of the token")
-		return
-	}
-	data := MemManager.getInfo(username, docId)
-	c.IndentedJSON(http.StatusOK, data)
-}
-
 func main() {
 
 	r := gin.Default()
@@ -155,7 +174,9 @@ func main() {
 	r.POST("/singup", signupHandler)
 	r.POST("/login", loginHandler)
 	r.GET("/version", versionHandler)
-	r.POST("/:username/:doc_id", postDocHandler)
-	r.GET("/:username/:doc_id", getDocHandler)
+	r.POST("/:username/:doc_id", DocHandler)
+	r.PUT("/:username/:doc_id", DocHandler)
+	r.GET("/:username/:doc_id", DocHandler)
+	r.DELETE("/:username/:doc_id", DocHandler)
 	r.Run() // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
 }

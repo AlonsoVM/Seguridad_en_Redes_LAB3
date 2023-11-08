@@ -12,35 +12,64 @@ type MemoryManager struct {
 	StorageDir string
 }
 
-func (Mem *MemoryManager) saveInfo(username string, filename string, data []byte) int {
+func (Mem *MemoryManager) saveInfo(username string, filename string, data []byte) (int, error) {
 	pathDir := fmt.Sprintf("%s/%s/", Mem.StorageDir, username)
-	err := os.MkdirAll(pathDir, 0666)
+	err := os.MkdirAll(pathDir, os.ModePerm)
 	if err != nil {
 		fmt.Println("Error creating directorys", err)
+		return 0, err
 	}
 	pathfile := fmt.Sprintf("%s%s", pathDir, filename)
 	fmt.Println(pathfile)
-	archivo, err := os.OpenFile(pathfile, os.O_RDWR|os.O_CREATE, 0666)
+	archivo, err := os.OpenFile(pathfile, os.O_WRONLY|os.O_CREATE, 0666)
 	if err != nil {
 		fmt.Print("Error opening the file", filename)
+		return 0, err
 	}
 	bytesWritten, err := archivo.Write(data)
 	if err != nil {
 		fmt.Println("Error writting in the file :", filename)
+		return 0, err
 	}
-	return bytesWritten
+	return bytesWritten, nil
 }
 
-func (Mem *MemoryManager) getInfo(username string, filename string) interface{} {
+func (Mem *MemoryManager) updateInfo(username string, filename string, data []byte) (int, error) {
 	pathfile := fmt.Sprintf("%s/%s/%s", Mem.StorageDir, username, filename)
-	archivo, err := os.OpenFile(pathfile, os.O_RDWR|os.O_CREATE, 0666)
+	archivo, err := os.OpenFile(pathfile, os.O_WRONLY, 0666)
 	if err != nil {
 		fmt.Print("Error opening the file", filename)
+		return 0, err
+	}
+	bytesWritten, err := archivo.Write(data)
+	if err != nil {
+		fmt.Println("Error writting in the file :", filename)
+		return 0, err
+	}
+	return bytesWritten, nil
+}
+
+func (Mem *MemoryManager) removeInfo(username string, filename string) error {
+	pathfile := fmt.Sprintf("%s/%s/%s", Mem.StorageDir, username, filename)
+	err := os.Remove(pathfile)
+	if err != nil {
+		fmt.Print("Error removing", filename)
+		return err
+	}
+	return nil
+}
+
+func (Mem *MemoryManager) getInfo(username string, filename string) (interface{}, error) {
+	pathfile := fmt.Sprintf("%s/%s/%s", Mem.StorageDir, username, filename)
+	archivo, err := os.OpenFile(pathfile, os.O_RDONLY, 0666)
+	var jsonData interface{}
+	if err != nil {
+		fmt.Print("Error opening the file", filename)
+		return jsonData, err
 	}
 	decoder := json.NewDecoder(archivo)
-	var jsonData interface{}
 	decoder.Decode(&jsonData)
-	return jsonData
+	return jsonData, nil
 }
 
 type VolatileToken struct {
