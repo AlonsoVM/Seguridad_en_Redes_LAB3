@@ -28,4 +28,4 @@ def login(username : str, password : str):
     else: print(resp.content.decode())
 
 version()
-singup("Benito", "Contrasenna12345_")
+login("Alonso3", "qwe")

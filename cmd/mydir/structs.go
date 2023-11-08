@@ -4,7 +4,44 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"sync"
+	"time"
 )
+
+type VolatileToken struct {
+	Token string
+	Time  time.Time
+}
+
+type VolatileTokenList struct {
+	VolatileTokens []VolatileToken
+	mutex          sync.Mutex
+}
+
+func (tokenList *VolatileTokenList) saveToken(tempToken string) {
+	fmt.Println("Saving token")
+	var token VolatileToken
+	token.Token = tempToken
+	token.Time = time.Now()
+	tokenList.mutex.Lock()
+	tokenList.VolatileTokens = append(tokenList.VolatileTokens, token)
+	tokenList.mutex.Unlock()
+}
+
+func (tokenList *VolatileTokenList) deleteOldTokens() {
+	for true {
+		tokenList.mutex.Lock()
+		for i, token := range tokenList.VolatileTokens {
+			if time.Now().Sub(token.Time).Seconds() > 30 {
+				tokenList.VolatileTokens = append(tokenList.VolatileTokens[:i], tokenList.VolatileTokens[i+1:]...)
+				fmt.Println("Removing token : ", token.Token)
+			}
+		}
+		tokenList.mutex.Unlock()
+		time.Sleep(8 * time.Second)
+		fmt.Println(tokenList.VolatileTokens)
+	}
+}
 
 type User struct {
 	UserName string `json:"username"`

@@ -17,6 +17,8 @@ import (
 
 var UsersL UserList
 
+var TokenL VolatileTokenList
+
 func createHashedPassword(salt string, pass string) string {
 	tempPassword := fmt.Sprintf("%s%s", salt, pass)
 	hash := sha256.New()
@@ -54,7 +56,7 @@ func signupHandler(c *gin.Context) {
 	UsersL.saveUsers(UserAux)
 	token := createToken()
 	response := createTokenResponse(token)
-
+	TokenL.saveToken(token)
 	c.IndentedJSON(http.StatusOK, response)
 
 }
@@ -76,6 +78,7 @@ func loginHandler(c *gin.Context) {
 	}
 	token := createToken()
 	response := createTokenResponse(token)
+	TokenL.saveToken(token)
 	c.JSON(http.StatusOK, response)
 
 }
@@ -90,6 +93,7 @@ func main() {
 	ruta := "Usuarios.json"
 	UsersL.file = ruta
 	UsersL.loadUsers()
+	go TokenL.deleteOldTokens()
 	r.POST("/singup", signupHandler)
 	r.POST("/login", loginHandler)
 	r.GET("/version", versionHandler)
