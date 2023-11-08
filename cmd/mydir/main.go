@@ -41,7 +41,6 @@ func createTokenResponse(token string) map[string]interface{} {
 	data := map[string]interface{}{
 		"access_token": token,
 	}
-	//jsonResponse, _ := json.Marshal(data)
 	return data
 }
 
@@ -99,7 +98,15 @@ func versionHandler(c *gin.Context) {
 
 func DocHandler(c *gin.Context) {
 	authHeader := c.Request.Header.Get("Authorization")
+	if authHeader == "" {
+		c.String(http.StatusUnauthorized, "Missing Authorization token in the header")
+		return
+	}
 	words := strings.Split(authHeader, " ")
+	if len(words) != 2 {
+		c.String(http.StatusBadRequest, "Bad Authorization Header")
+		return
+	}
 	token := words[1]
 	username := c.Param("username")
 	docId := c.Param("doc_id")
@@ -162,6 +169,7 @@ func DocHandler(c *gin.Context) {
 	}
 
 }
+
 func main() {
 
 	r := gin.Default()

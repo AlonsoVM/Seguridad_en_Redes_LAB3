@@ -8,12 +8,34 @@ AUTH_TOKEN = "token"
 ACCESS_TOKEN = "access_token"
 AUTHORIZATION = "Authorization"
 DOCUMENT = "doc_content"
+data = {
+"capacidad_bateria": 20,
+"dispositivos_iot": [
+{
+"nombre": "Router",
+"consumo": 0.6
+},
+{
+"nombre": "Camara",
+"consumo": 0.5
+},
+{
+"nombre": "Termostato",
+"consumo": 0.3
+},
+{
+"nombre": "Sensor",
+"consumo": 0.1
+}
+]
+}
 
 def version(token: str):
     dit = {}
     dit[AUTH_TOKEN] = token
     resp = requests.get("http://127.0.0.1:8080/version", headers= dit)
     print(f'{resp.content.decode()} {resp.status_code}')
+
 def singup(username : str, password : str):
     dit = {}
     dit[USERNAME] = username
@@ -42,8 +64,9 @@ def PostDoc(token : str):
     ditAux["Azucar"] = 2
     ditAux["Acciones"] = ["Remover", "limpiar"]
     ditAux2 = {}
-    ditAux2[DOCUMENT] = ditAux
-    resp = requests.post("http://127.0.0.1:8080/Alonso3/proporciones", headers=dit, data=json.dumps(ditAux2))
+
+    ditAux2[DOCUMENT] = data
+    resp = requests.post("http://127.0.0.1:8080/Alonso3/iot", headers=dit, data=json.dumps(ditAux2))
     print(resp.content.decode())
 
 def PutDoc(token : str):
@@ -62,7 +85,7 @@ def PutDoc(token : str):
 def GETDoc(token : str):
     dit = {}
     dit[AUTHORIZATION] = AUTH_TOKEN + " " + token
-    resp = requests.get("http://127.0.0.1:8080/Alonso3/proporciones", headers=dit)
+    resp = requests.get("http://127.0.0.1:8080/Alonso3/iot", headers=dit)
     print(resp.content.decode())
 
 def DeleteDoc(token : str):
@@ -71,4 +94,4 @@ def DeleteDoc(token : str):
     resp = requests.delete("http://127.0.0.1:8080/Alonso3/proporciones", headers=dit)
     print(resp.content.decode())
 token = login("Alonso3", "qwe")
-PostDoc(token)
+GETDoc(token)

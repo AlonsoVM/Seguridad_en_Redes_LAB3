@@ -61,10 +61,10 @@ func (Mem *MemoryManager) removeInfo(username string, filename string) error {
 	return nil
 }
 
-func (Mem *MemoryManager) getInfo(username string, filename string) (interface{}, error) {
+func (Mem *MemoryManager) getInfo(username string, filename string) (map[string]interface{}, error) {
 	pathfile := fmt.Sprintf("%s/%s/%s", Mem.StorageDir, username, filename)
 	archivo, err := os.OpenFile(pathfile, os.O_RDONLY, 0666)
-	var jsonData interface{}
+	var jsonData map[string]interface{}
 	if err != nil {
 		fmt.Print("Error opening the file", filename)
 		return jsonData, err

@@ -1,0 +1,21 @@
+{
+"capacidad_bateria": 20,
+"dispositivos_iot": [
+{
+"nombre": "Router",
+"consumo": 0.6
+},
+{
+"nombre": "Camara",
+"consumo": 0.5
+},
+{
+"nombre": "Termostato",
+"consumo": 0.3
+},
+{
+"nombre": "Sensor",
+"consumo": 0.1
+}
+]
+}
