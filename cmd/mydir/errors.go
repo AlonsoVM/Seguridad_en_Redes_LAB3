@@ -8,6 +8,22 @@ func (e *UserNotExists) Error() string {
 	return "The user " + e.User + "do not exist in the system"
 }
 
+type UserExists struct {
+	User string
+}
+
+func (e *UserExists) Error() string {
+	return "The user " + e.User + "do not exist in the system"
+}
+
+type InvalidPassword struct {
+	Message string
+}
+
+func (e *InvalidPassword) Error() string {
+	return e.Message
+}
+
 type TokenExpired struct {
 	Token string
 }

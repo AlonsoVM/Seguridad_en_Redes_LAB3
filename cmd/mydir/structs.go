@@ -1,8 +1,14 @@
 package main
 
 import (
+	"crypto/sha256"
+	"encoding/base64"
+	"encoding/binary"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"io"
+	"math/rand"
 	"os"
 	"sync"
 	"time"
@@ -81,12 +87,35 @@ type VolatileToken struct {
 	Time     time.Time
 }
 
-type VolatileTokenList struct {
+type TokenManager struct {
 	VolatileTokens []VolatileToken
 	mutex          sync.Mutex
 }
 
-func (tokenList *VolatileTokenList) saveToken(tempToken string, userName string) {
+func (tokenList *TokenManager) createToken() string {
+	rand.NewSource(time.Now().UnixMilli())
+	random := rand.Int63()
+	bytes := make([]byte, 8)
+	binary.BigEndian.PutUint64(bytes, uint64(random))
+	token := base64.StdEncoding.EncodeToString([]byte(bytes))
+	return token
+}
+func (tokenList *TokenManager) createTokenResponse(token string) map[string]interface{} {
+	data := map[string]interface{}{
+		"access_token": token,
+	}
+	return data
+}
+
+func (tokenList *TokenManager) getToken(username string) map[string]interface{} {
+	token := tokenList.createToken()
+	response := tokenList.createTokenResponse(token)
+	TokenL.saveToken(token, username)
+	return response
+
+}
+
+func (tokenList *TokenManager) saveToken(tempToken string, userName string) {
 	var token VolatileToken
 	token.Token = tempToken
 	token.userName = userName
@@ -96,7 +125,7 @@ func (tokenList *VolatileTokenList) saveToken(tempToken string, userName string)
 	tokenList.mutex.Unlock()
 }
 
-func (tokenList *VolatileTokenList) deleteOldTokens() {
+func (tokenList *TokenManager) deleteOldTokens() {
 	for true {
 		tokenList.mutex.Lock()
 		for i, token := range tokenList.VolatileTokens {
@@ -110,7 +139,7 @@ func (tokenList *VolatileTokenList) deleteOldTokens() {
 	}
 }
 
-func (tokenList *VolatileTokenList) tokenExists(id string) bool {
+func (tokenList *TokenManager) tokenExists(id string) bool {
 	for _, token := range tokenList.VolatileTokens {
 		if token.Token == id {
 			return true
@@ -119,7 +148,7 @@ func (tokenList *VolatileTokenList) tokenExists(id string) bool {
 	return false
 }
 
-func (tokenList *VolatileTokenList) getTokenOwner(id string) string {
+func (tokenList *TokenManager) getTokenOwner(id string) string {
 	for _, token := range tokenList.VolatileTokens {
 		if token.Token == id {
 			return token.userName
@@ -134,12 +163,52 @@ type User struct {
 	Salt     string `json:"salt"`
 }
 
-type UserList struct {
+type UserManager struct {
 	Users []User `json:"users"`
 	file  string
 }
 
-func (UserL *UserList) loadUsers() {
+func (UserL *UserManager) createUser(body io.ReadCloser) (User, error) {
+	rand.NewSource(time.Now().UnixMilli())
+	var datosJson, _ = io.ReadAll(body)
+	var UserAux User
+
+	json.Unmarshal(datosJson, &UserAux)
+	if UserL.UserExist(UserAux.UserName) {
+		return UserAux, &UserExists{"The user already exits"}
+	}
+
+	UserAux.Salt = fmt.Sprintf("%d", rand.Int())
+	UserAux.Password = createHashedPassword(UserAux.Salt, UserAux.Password)
+	UserL.saveUsers(UserAux)
+	return UserAux, nil
+}
+
+func createHashedPassword(salt string, pass string) string {
+	tempPassword := fmt.Sprintf("%s%s", salt, pass)
+	hash := sha256.New()
+	return hex.EncodeToString(hash.Sum([]byte(tempPassword)))
+}
+
+func (UserL *UserManager) logUser(body io.ReadCloser) (User, error) {
+	var datosJson, _ = io.ReadAll(body)
+	var UserAux User
+	json.Unmarshal(datosJson, &UserAux)
+	if !UserL.UserExist(UserAux.UserName) {
+		return UserAux, &UserNotExists{UserAux.UserName}
+	}
+
+	Password := UserL.getUserPassword(UserAux.UserName)
+	Salt := UserL.getUserSalt(UserAux.UserName)
+	tempPass := createHashedPassword(Salt, UserAux.Password)
+	if Password != tempPass {
+		return UserAux, &InvalidPassword{"The password provided is invalid"}
+	}
+
+	return UserAux, nil
+}
+
+func (UserL *UserManager) loadUsers() {
 	archivo, err := os.OpenFile(UserL.file, os.O_RDWR|os.O_CREATE, 0666)
 	if err != nil {
 		fmt.Print("Error opening the file", UserL.file)
@@ -148,19 +217,19 @@ func (UserL *UserList) loadUsers() {
 	decoder := json.NewDecoder(archivo)
 	decoder.Decode(&UserL)
 }
-func (UserL *UserList) saveUsers(NewUser User) {
+func (UserL *UserManager) saveUsers(NewUser User) {
 	archivo, err := os.OpenFile(UserL.file, os.O_RDWR|os.O_CREATE, 0666)
 	if err != nil {
 		fmt.Print("Error opening the file", UserL.file)
 	}
 	defer archivo.Close()
 	encoder := json.NewEncoder(archivo)
-	UsersL.Users = append(UsersL.Users, NewUser)
+	UserL.Users = append(UserL.Users, NewUser)
 	encoder.SetIndent("", " ")
-	encoder.Encode(&UsersL)
+	encoder.Encode(&UserL)
 }
-func (UserL *UserList) getUserPassword(UserName string) string {
-	for _, userAux := range UsersL.Users {
+func (UserL *UserManager) getUserPassword(UserName string) string {
+	for _, userAux := range UserL.Users {
 		if userAux.UserName == UserName {
 			return userAux.Password
 		}
@@ -168,8 +237,8 @@ func (UserL *UserList) getUserPassword(UserName string) string {
 	return ""
 }
 
-func (UserL *UserList) getUserSalt(UserName string) string {
-	for _, userAux := range UsersL.Users {
+func (UserL *UserManager) getUserSalt(UserName string) string {
+	for _, userAux := range UserL.Users {
 		if userAux.UserName == UserName {
 			return userAux.Salt
 		}
@@ -177,9 +246,9 @@ func (UserL *UserList) getUserSalt(UserName string) string {
 	return ""
 }
 
-func (UserL *UserList) UserExist(UserName string) bool {
-	for i := 0; i < len(UsersL.Users); i++ {
-		if UserName == UsersL.Users[i].UserName {
+func (UserL *UserManager) UserExist(UserName string) bool {
+	for i := 0; i < len(UserL.Users); i++ {
+		if UserName == UserL.Users[i].UserName {
 			return true
 		}
 	}
