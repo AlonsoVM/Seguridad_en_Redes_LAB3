@@ -26,6 +26,7 @@ func (Mem *MemoryManager) saveInfo(username string, filename string, data []byte
 		fmt.Print("Error opening the file", filename)
 		return 0, err
 	}
+	defer archivo.Close()
 	bytesWritten, err := archivo.Write(data)
 	if err != nil {
 		fmt.Println("Error writting in the file :", filename)
@@ -41,6 +42,7 @@ func (Mem *MemoryManager) updateInfo(username string, filename string, data []by
 		fmt.Print("Error opening the file", filename)
 		return 0, err
 	}
+	defer archivo.Close()
 	bytesWritten, err := archivo.Write(data)
 	if err != nil {
 		fmt.Println("Error writting in the file :", filename)
@@ -67,6 +69,7 @@ func (Mem *MemoryManager) getInfo(username string, filename string) (interface{}
 		fmt.Print("Error opening the file", filename)
 		return jsonData, err
 	}
+	defer archivo.Close()
 	decoder := json.NewDecoder(archivo)
 	decoder.Decode(&jsonData)
 	return jsonData, nil
