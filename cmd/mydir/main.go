@@ -10,6 +10,7 @@ import (
 	"io"
 	"math/rand"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -18,6 +19,8 @@ import (
 var UsersL UserList
 
 var TokenL VolatileTokenList
+
+var MemManager MemoryManager
 
 func createHashedPassword(salt string, pass string) string {
 	tempPassword := fmt.Sprintf("%s%s", salt, pass)
@@ -42,6 +45,13 @@ func createTokenResponse(token string) map[string]interface{} {
 	return data
 }
 
+func createDocResponse(bytesWritten int) map[string]interface{} {
+	data := map[string]interface{}{
+		"size": bytesWritten,
+	}
+	return data
+}
+
 func signupHandler(c *gin.Context) {
 	rand.NewSource(time.Now().UnixMilli())
 	var datosJson, _ = io.ReadAll(c.Request.Body)
@@ -56,7 +66,7 @@ func signupHandler(c *gin.Context) {
 	UsersL.saveUsers(UserAux)
 	token := createToken()
 	response := createTokenResponse(token)
-	TokenL.saveToken(token)
+	TokenL.saveToken(token, UserAux.UserName)
 	c.IndentedJSON(http.StatusOK, response)
 
 }
@@ -78,7 +88,7 @@ func loginHandler(c *gin.Context) {
 	}
 	token := createToken()
 	response := createTokenResponse(token)
-	TokenL.saveToken(token)
+	TokenL.saveToken(token, requestInfo.UserName)
 	c.JSON(http.StatusOK, response)
 
 }
@@ -87,15 +97,65 @@ func versionHandler(c *gin.Context) {
 	c.String(http.StatusOK, "0.1.0")
 }
 
+func postDocHandler(c *gin.Context) {
+	authHeader := c.Request.Header.Get("Authorization")
+	words := strings.Split(authHeader, " ")
+	token := words[1]
+	username := c.Param("username")
+	docId := c.Param("doc_id")
+	if !UsersL.UserExist(username) {
+		c.String(http.StatusUnauthorized, "User not registered in the system")
+		return
+	}
+	if !TokenL.tokenExists(token) {
+		c.String(http.StatusUnauthorized, "Your token has expired, refresh it in /login ", token)
+		return
+	}
+	if username != TokenL.getTokenOwner(token) {
+		c.String(http.StatusUnauthorized, "The username given is not the owner of the token")
+		return
+	}
+	var datosJson, _ = io.ReadAll(c.Request.Body)
+	bytesWritten := MemManager.saveInfo(username, docId, datosJson)
+	c.IndentedJSON(http.StatusOK, createDocResponse(bytesWritten))
+
+}
+
+func getDocHandler(c *gin.Context) {
+	authHeader := c.Request.Header.Get("Authorization")
+	words := strings.Split(authHeader, " ")
+	token := words[1]
+	username := c.Param("username")
+	docId := c.Param("doc_id")
+	if !UsersL.UserExist(username) {
+		c.String(http.StatusUnauthorized, "User not registered in the system")
+		return
+	}
+	if !TokenL.tokenExists(token) {
+		c.String(http.StatusUnauthorized, "Your token has expired, refresh it in /login ", token)
+		return
+	}
+	if username != TokenL.getTokenOwner(token) {
+		c.String(http.StatusUnauthorized, "The username given is not the owner of the token")
+		return
+	}
+	data := MemManager.getInfo(username, docId)
+	c.IndentedJSON(http.StatusOK, data)
+}
+
 func main() {
 
 	r := gin.Default()
 	ruta := "Usuarios.json"
+	storage := "StorageDir"
 	UsersL.file = ruta
+	MemManager.StorageDir = storage
 	UsersL.loadUsers()
 	go TokenL.deleteOldTokens()
 	r.POST("/singup", signupHandler)
 	r.POST("/login", loginHandler)
 	r.GET("/version", versionHandler)
+	r.POST("/:username/:doc_id", postDocHandler)
+	r.GET("/:username/:doc_id", getDocHandler)
 	r.Run() // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
 }
