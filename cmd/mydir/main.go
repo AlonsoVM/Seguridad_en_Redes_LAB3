@@ -22,6 +22,13 @@ func createDocResponse(bytesWritten int) map[string]interface{} {
 	return data
 }
 
+func createTokenResponse(token string) map[string]interface{} {
+	data := map[string]interface{}{
+		"access_token": token,
+	}
+	return data
+}
+
 func signupHandler(c *gin.Context) {
 	var UserAux, err = userManager.createUser(c.Request.Body)
 	if err != nil {
@@ -29,7 +36,8 @@ func signupHandler(c *gin.Context) {
 		return
 	}
 
-	response := tokenManager.getToken(UserAux.UserName)
+	token := tokenManager.getToken(UserAux.UserName)
+	response := createTokenResponse(token)
 	c.IndentedJSON(http.StatusOK, response)
 
 }
@@ -40,7 +48,8 @@ func loginHandler(c *gin.Context) {
 		c.String(http.StatusUnauthorized, err.Error())
 		return
 	}
-	response := tokenManager.getToken(UserAux.UserName)
+	token := tokenManager.getToken(UserAux.UserName)
+	response := createTokenResponse(token)
 	c.IndentedJSON(http.StatusOK, response)
 }
 
@@ -60,8 +69,14 @@ func parseHeader(authHeader string) (string, error) {
 }
 
 func parseParams(params gin.Params, token string) (string, string, error) {
-	username := params[0].Value
-	docId := params[1].Value
+	var username string
+	var docId string
+	if len(params) != 1 {
+		username = params[0].Value
+		docId = params[1].Value
+	} else {
+		username = params[0].Value
+	}
 	if !userManager.UserExist(username) {
 		return "", "", &UserNotExists{username}
 	}
@@ -150,6 +165,28 @@ func DocHandler(c *gin.Context) {
 	}
 
 }
+func AllDocsHandler(c *gin.Context) {
+	authHeader := c.Request.Header.Get("Authorization")
+	token, err := parseHeader(authHeader)
+	if err != nil {
+		c.String(http.StatusBadRequest, err.Error())
+		return
+	}
+
+	username, _, err := parseParams(c.Params, token)
+	if err != nil {
+		c.String(http.StatusUnauthorized, err.Error())
+		return
+	}
+
+	data, err := MemManager.getAllDoc(username)
+	if err != nil {
+		c.String(http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	c.IndentedJSON(http.StatusOK, data)
+}
 
 func main() {
 
@@ -167,5 +204,6 @@ func main() {
 	r.PUT("/:username/:doc_id", DocHandler)
 	r.GET("/:username/:doc_id", DocHandler)
 	r.DELETE("/:username/:doc_id", DocHandler)
+	r.GET("/:username/_all_docs", AllDocsHandler)
 	r.Run() // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
 }

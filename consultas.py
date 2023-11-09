@@ -60,13 +60,13 @@ def PostDoc(token : str):
     dit = {}
     dit[AUTHORIZATION] = AUTH_TOKEN + " " + token
     ditAux = {}
-    ditAux["Sal"] = 5
-    ditAux["Azucar"] = 2
+    ditAux["Perejil"] = 5
+    ditAux["Tomillo"] = 2
     ditAux["Acciones"] = ["Remover", "limpiar"]
     ditAux2 = {}
 
     ditAux2[DOCUMENT] = ditAux
-    resp = requests.post("http://127.0.0.1:8080/Pruebas/recetasvarias", headers=dit, data=json.dumps(ditAux2))
+    resp = requests.post("http://127.0.0.1:8080/Alonso3/p1", headers=dit, data=json.dumps(ditAux2))
     print(resp.content.decode())
 
 def PutDoc(token : str):
@@ -79,7 +79,7 @@ def PutDoc(token : str):
     ditAux["Acciones"] = ["Remover", "limpiar", "colocar"]
     ditAux2 = {}
     ditAux2[DOCUMENT] = ditAux
-    resp = requests.put("http://127.0.0.1:8080/Alonso3/proporciones", headers=dit, data=json.dumps(ditAux2))
+    resp = requests.put("http://127.0.0.1:8080/Alonso3/p1", headers=dit, data=json.dumps(ditAux2))
     print(resp.content.decode())
 
 def GETDoc(token : str):
@@ -91,7 +91,13 @@ def GETDoc(token : str):
 def DeleteDoc(token : str):
     dit = {}
     dit[AUTHORIZATION] = AUTH_TOKEN + " " + token
-    resp = requests.delete("http://127.0.0.1:8080/Alonso3/proporciones", headers=dit)
+    resp = requests.delete("http://127.0.0.1:8080/Alonso3/p1", headers=dit)
     print(resp.content.decode())
-token = login("Pruebas", "qwe")
-PostDoc(token)
+
+def GETALLDoc(token : str):
+    dit = {}
+    dit[AUTHORIZATION] = AUTH_TOKEN + " " + token
+    resp = requests.get("http://127.0.0.1:8080/Alonso3/_all_docs", headers=dit)
+    print(resp.content.decode())
+token = login("Alonso3", "qwe")
+GETDoc(token)

@@ -122,19 +122,24 @@ func (tokenList *TokenManager) createToken() string {
 	token := base64.StdEncoding.EncodeToString([]byte(bytes))
 	return token
 }
-func (tokenList *TokenManager) createTokenResponse(token string) map[string]interface{} {
-	data := map[string]interface{}{
-		"access_token": token,
-	}
-	return data
+
+func (tokenList *TokenManager) getToken(username string) string {
+	token := tokenList.createToken()
+	tokenList.removeSingleToken(username)
+	tokenList.saveToken(token, username)
+	return token
+
 }
 
-func (tokenList *TokenManager) getToken(username string) map[string]interface{} {
-	token := tokenList.createToken()
-	response := tokenList.createTokenResponse(token)
-	tokenList.saveToken(token, username)
-	return response
-
+func (tokenList *TokenManager) removeSingleToken(username string) {
+	tokenList.mutex.Lock()
+	for i, token := range tokenList.VolatileTokens {
+		if token.userName == username {
+			tokenList.VolatileTokens = append(tokenList.VolatileTokens[:i], tokenList.VolatileTokens[i+1:]...)
+			fmt.Println("Removing token : ", token)
+		}
+	}
+	tokenList.mutex.Unlock()
 }
 
 func (tokenList *TokenManager) saveToken(tempToken string, userName string) {
