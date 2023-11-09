@@ -11,7 +11,7 @@ import (
 
 var userManager UserManager
 
-var TokenL TokenManager
+var tokenManager TokenManager
 
 var MemManager MemoryManager
 
@@ -29,7 +29,7 @@ func signupHandler(c *gin.Context) {
 		return
 	}
 
-	response := TokenL.getToken(UserAux.UserName)
+	response := tokenManager.getToken(UserAux.UserName)
 	c.IndentedJSON(http.StatusOK, response)
 
 }
@@ -40,7 +40,7 @@ func loginHandler(c *gin.Context) {
 		c.String(http.StatusUnauthorized, err.Error())
 		return
 	}
-	response := TokenL.getToken(UserAux.UserName)
+	response := tokenManager.getToken(UserAux.UserName)
 	c.IndentedJSON(http.StatusOK, response)
 }
 
@@ -65,10 +65,10 @@ func parseParams(params gin.Params, token string) (string, string, error) {
 	if !userManager.UserExist(username) {
 		return "", "", &UserNotExists{username}
 	}
-	if !TokenL.tokenExists(token) {
+	if !tokenManager.tokenExists(token) {
 		return "", "", &TokenExpired{token}
 	}
-	if username != TokenL.getTokenOwner(token) {
+	if username != tokenManager.getTokenOwner(token) {
 		return "", "", &NotOwner{username, token}
 	}
 	return username, docId, nil
@@ -159,7 +159,7 @@ func main() {
 	userManager.file = ruta
 	MemManager.StorageDir = storage
 	userManager.loadUsers()
-	go TokenL.deleteOldTokens()
+	go tokenManager.deleteOldTokens()
 	r.POST("/singup", signupHandler)
 	r.POST("/login", loginHandler)
 	r.GET("/version", versionHandler)

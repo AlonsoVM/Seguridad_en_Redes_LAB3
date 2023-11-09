@@ -18,6 +18,28 @@ type MemoryManager struct {
 	StorageDir string
 }
 
+func (Mem *MemoryManager) getAllDoc(username string) (map[string]map[string]interface{}, error) {
+	data := make(map[string]map[string]interface{})
+	pathDir := fmt.Sprintf("%s/%s", Mem.StorageDir, username)
+	dir, err := os.Open(pathDir)
+	if err != nil {
+		fmt.Println("Error opening the directory : ", pathDir)
+		return data, err
+	}
+	defer dir.Close()
+
+	files, err := dir.Readdirnames(0)
+	if err != nil {
+		fmt.Println("Error reading the entries of the directory : ", pathDir)
+	}
+
+	for i, file := range files {
+		jsonData, _ := Mem.getInfo(username, file)
+		data["id"+fmt.Sprint(i)] = jsonData
+	}
+	return data, nil
+}
+
 func (Mem *MemoryManager) saveInfo(username string, filename string, data []byte) (int, error) {
 	pathDir := fmt.Sprintf("%s/%s/", Mem.StorageDir, username)
 	err := os.MkdirAll(pathDir, os.ModePerm)
@@ -110,7 +132,7 @@ func (tokenList *TokenManager) createTokenResponse(token string) map[string]inte
 func (tokenList *TokenManager) getToken(username string) map[string]interface{} {
 	token := tokenList.createToken()
 	response := tokenList.createTokenResponse(token)
-	TokenL.saveToken(token, username)
+	tokenList.saveToken(token, username)
 	return response
 
 }
