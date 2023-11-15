@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"strings"
@@ -58,6 +59,7 @@ func versionHandler(c *gin.Context) {
 }
 
 func parseHeader(authHeader string) (string, error) {
+	fmt.Println(authHeader)
 	if authHeader == "" {
 		return "", &MissingAuthHeader{"Missing Authorization Header in the request"}
 	}
@@ -107,6 +109,7 @@ func parseBody(body io.ReadCloser) ([]byte, error) {
 }
 
 func DocHandler(c *gin.Context) {
+	fmt.Println(c.Request.Header)
 	authHeader := c.Request.Header.Get("Authorization")
 	token, err := parseHeader(authHeader)
 	if err != nil {
@@ -205,5 +208,5 @@ func main() {
 	r.GET("/:username/:doc_id", DocHandler)
 	r.DELETE("/:username/:doc_id", DocHandler)
 	r.GET("/:username/_all_docs", AllDocsHandler)
-	r.Run() // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
+	r.Run("myserver.local:5000") // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
 }
