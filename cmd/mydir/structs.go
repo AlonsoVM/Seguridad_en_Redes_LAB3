@@ -48,7 +48,11 @@ func (Mem *MemoryManager) saveInfo(username string, filename string, data []byte
 		return 0, err
 	}
 	pathfile := fmt.Sprintf("%s%s", pathDir, filename)
-	fmt.Println(pathfile)
+	_, err = os.Stat(pathfile)
+	if err == nil {
+		fmt.Println("The file already exits")
+		return 0, &FileExits{filename}
+	}
 	archivo, err := os.OpenFile(pathfile, os.O_WRONLY|os.O_CREATE, 0666)
 	if err != nil {
 		fmt.Print("Error opening the file", filename)

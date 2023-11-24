@@ -66,7 +66,7 @@ def PostDoc(token : str):
     ditAux2 = {}
 
     ditAux2[DOCUMENT] = ditAux
-    resp = requests.post("http://myserver.local:5000/Alonso3/p1", headers=dit, data=json.dumps(ditAux2))
+    resp = requests.post("http://myserver.local:5000/AlonsoVilla2233/test1", headers=dit, data=json.dumps(ditAux2))
     print(resp.content.decode())
 
 def PutDoc(token : str):
@@ -79,13 +79,13 @@ def PutDoc(token : str):
     ditAux["Acciones"] = ["Remover", "limpiar", "colocar"]
     ditAux2 = {}
     ditAux2[DOCUMENT] = ditAux
-    resp = requests.put("http://myserver.local:5000/Alonso3/p1", headers=dit, data=json.dumps(ditAux2))
+    resp = requests.put("http://myserver.local:5000/Alonso3/test", headers=dit, data=json.dumps(ditAux2))
     print(resp.content.decode())
 
 def GETDoc(token : str):
     dit = {}
     dit[AUTHORIZATION] = AUTH_TOKEN + " " + token
-    resp = requests.get("http://myserver.local:5000/Alonso3/iot", headers=dit)
+    resp = requests.get("http://myserver.local:5000/Alonso3/test2", headers=dit)
     print(resp.content.decode())
 
 def DeleteDoc(token : str):
@@ -97,7 +97,7 @@ def DeleteDoc(token : str):
 def GETALLDoc(token : str):
     dit = {}
     dit[AUTHORIZATION] = AUTH_TOKEN + " " + token
-    resp = requests.get("http://myserver.local:5000/Alonso3/_all_docs", headers=dit)
+    resp = requests.get("http://myserver.local:5000/AlonsoVilla2233/_all_docs", headers=dit)
     print(resp.content.decode())
-token = login("Alonso3", "qwe")
+token = login("AlonsoVilla2233", "qwe")
 GETALLDoc(token)

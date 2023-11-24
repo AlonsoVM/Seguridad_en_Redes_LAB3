@@ -8,6 +8,14 @@ func (e *UserNotExists) Error() string {
 	return "The user " + e.User + "do not exist in the system"
 }
 
+type FileExits struct {
+	file string
+}
+
+func (e *FileExits) Error() string {
+	return "The file " + e.file + " do exist in the system"
+}
+
 type UserExists struct {
 	User string
 }
@@ -29,7 +37,7 @@ type TokenExpired struct {
 }
 
 func (e *TokenExpired) Error() string {
-	return "The token " + e.Token + "has expired, login again"
+	return "The token " + e.Token + " has expired, login again"
 }
 
 type NotOwner struct {

@@ -1,3 +1,4 @@
+// main.go
 package main
 
 import (
@@ -30,7 +31,7 @@ func createTokenResponse(token string) map[string]interface{} {
 	return data
 }
 
-func signupHandler(c *gin.Context) {
+func SignupHandler(c *gin.Context) {
 	var UserAux, err = userManager.createUser(c.Request.Body)
 	if err != nil {
 		c.String(http.StatusConflict, err.Error())
@@ -43,7 +44,7 @@ func signupHandler(c *gin.Context) {
 
 }
 
-func loginHandler(c *gin.Context) {
+func LoginHandler(c *gin.Context) {
 	var UserAux, err = userManager.logUser(c.Request.Body)
 	if err != nil {
 		c.String(http.StatusUnauthorized, err.Error())
@@ -54,12 +55,11 @@ func loginHandler(c *gin.Context) {
 	c.IndentedJSON(http.StatusOK, response)
 }
 
-func versionHandler(c *gin.Context) {
+func VersionHandler(c *gin.Context) {
 	c.String(http.StatusOK, "0.1.0")
 }
 
 func parseHeader(authHeader string) (string, error) {
-	fmt.Println(authHeader)
 	if authHeader == "" {
 		return "", &MissingAuthHeader{"Missing Authorization Header in the request"}
 	}
@@ -109,15 +109,16 @@ func parseBody(body io.ReadCloser) ([]byte, error) {
 }
 
 func DocHandler(c *gin.Context) {
-	fmt.Println(c.Request.Header)
 	authHeader := c.Request.Header.Get("Authorization")
+	fmt.Println("auhtHeader", authHeader)
 	token, err := parseHeader(authHeader)
+	fmt.Println("handlertoken", token)
 	if err != nil {
 		c.String(http.StatusBadRequest, err.Error())
 		return
 	}
-
 	username, docId, err := parseParams(c.Params, token)
+	fmt.Println(username, docId)
 	if err != nil {
 		c.String(http.StatusUnauthorized, err.Error())
 		return
@@ -200,9 +201,9 @@ func main() {
 	MemManager.StorageDir = storage
 	userManager.loadUsers()
 	go tokenManager.deleteOldTokens()
-	r.POST("/singup", signupHandler)
-	r.POST("/login", loginHandler)
-	r.GET("/version", versionHandler)
+	r.POST("/singup", SignupHandler)
+	r.POST("/login", LoginHandler)
+	r.GET("/version", VersionHandler)
 	r.POST("/:username/:doc_id", DocHandler)
 	r.PUT("/:username/:doc_id", DocHandler)
 	r.GET("/:username/:doc_id", DocHandler)
