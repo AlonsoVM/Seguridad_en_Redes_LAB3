@@ -197,7 +197,7 @@ func main() {
 	MemManager.StorageDir = storage
 	userManager.loadUsers()
 	go tokenManager.deleteOldTokens()
-	r.POST("/singup", SignupHandler)
+	r.POST("/signup", SignupHandler)
 	r.POST("/login", LoginHandler)
 	r.GET("/version", VersionHandler)
 	r.POST("/:username/:doc_id", DocHandler)

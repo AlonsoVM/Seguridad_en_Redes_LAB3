@@ -14,7 +14,7 @@ import (
 )
 
 const serverEndPoint = "http://myserver.local:5000"
-const extensionSingUp = "/singup"
+const extensionSingUp = "/signup"
 const extensionLogin = "/login"
 const extensionVersion = "/version"
 const extensionPost = "/test/testjson"
@@ -65,7 +65,7 @@ func TestSignupHandler(t *testing.T) {
 	initialice()
 	gin.SetMode(gin.TestMode)
 	r := gin.New()
-	r.POST("/singup", SignupHandler)
+	r.POST("/signup", SignupHandler)
 
 	//Creating the body of the singup request
 	body := make(map[string]interface{})
@@ -83,7 +83,7 @@ func TestSignupHandler(t *testing.T) {
 	r.ServeHTTP(recorder, request)
 	status := recorder.Code
 	if status != 200 {
-		t.Error("error in the singup petition")
+		t.Error("error in the signup petition")
 	}
 
 	// repeating the same request, now it shoul faild cause the user already exits
@@ -92,7 +92,7 @@ func TestSignupHandler(t *testing.T) {
 	r.ServeHTTP(recorder, request)
 	status = recorder.Code
 	if status != 409 {
-		t.Error("error in the singup petition")
+		t.Error("error in the signup petition")
 	}
 
 }
@@ -308,7 +308,7 @@ func TestDocHandlerGETALLDOCS(t *testing.T) {
 	request.Header.Set("Authorization", token)
 
 	recorder := httptest.NewRecorder()
-
+	fmt.Println(recorder.Body.String())
 	r.ServeHTTP(recorder, request)
 	if recorder.Code != 200 {
 		t.Error("Error in GET all document")

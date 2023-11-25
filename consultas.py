@@ -40,7 +40,7 @@ def singup(username : str, password : str):
     dit = {}
     dit[USERNAME] = username
     dit[PASS] = password
-    resp = requests.post("http://myserver.local:5000/singup", data=json.dumps(dit))
+    resp = requests.post("http://myserver.local:5000/signup", data=json.dumps(dit))
     print(resp.status_code)
     if resp.status_code == 200: print(json.loads(resp.content))
     else: print(resp.content.decode())
@@ -68,8 +68,8 @@ def PostDoc(token : str):
     data = f.read()
     jsontodata = json.loads(data)
     dataIndented = json.dumps(jsontodata, indent=2)
-    ditAux2[DOCUMENT] = ditAux
-    resp = requests.post("http://myserver.local:5000/AlonsoVilla2233/mod", headers=dit, data=json.dumps(ditAux2, indent=2))
+    ditAux2[DOCUMENT] = jsontodata
+    resp = requests.post("http://myserver.local:5000/AlonsoVilla2233/iot", headers=dit, data=json.dumps(ditAux2, indent=2))
     print(resp.content.decode())
 
 def PutDoc(token : str):
@@ -94,7 +94,7 @@ def PutDoc(token : str):
 def GETDoc(token : str):
     dit = {}
     dit[AUTHORIZATION] = AUTH_TOKEN + " " + token
-    resp = requests.get("http://myserver.local:5000/AlonsoVilla2233/test2", headers=dit)
+    resp = requests.get("http://myserver.local:5000/AlonsoVilla2233/mod", headers=dit)
     print(resp.content.decode())
 
 def DeleteDoc(token : str):
@@ -109,4 +109,4 @@ def GETALLDoc(token : str):
     resp = requests.get("http://myserver.local:5000/AlonsoVilla2233/_all_docs", headers=dit)
     print(resp.content.decode())
 token = login("AlonsoVilla2233", "qwe")
-DeleteDoc(token)
+GETALLDoc(token)

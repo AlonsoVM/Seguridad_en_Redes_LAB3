@@ -10,6 +10,7 @@ import (
 	"io"
 	"math/rand"
 	"os"
+	"strings"
 	"sync"
 	"time"
 )
@@ -47,7 +48,7 @@ func (Mem *MemoryManager) saveInfo(username string, filename string, data []byte
 		fmt.Println("Error creating directorys", err)
 		return 0, err
 	}
-	pathfile := fmt.Sprintf("%s%s", pathDir, filename)
+	pathfile := fmt.Sprintf("%s%s%s", pathDir, filename, ".json")
 	_, err = os.Stat(pathfile)
 	if err == nil {
 		fmt.Println("The file already exits")
@@ -68,7 +69,7 @@ func (Mem *MemoryManager) saveInfo(username string, filename string, data []byte
 }
 
 func (Mem *MemoryManager) updateInfo(username string, filename string, data []byte) (int, error) {
-	pathfile := fmt.Sprintf("%s/%s/%s", Mem.StorageDir, username, filename)
+	pathfile := fmt.Sprintf("%s/%s/%s%s", Mem.StorageDir, username, filename, ".json")
 	archivo, err := os.OpenFile(pathfile, os.O_WRONLY, 0666)
 	if err != nil {
 		fmt.Print("Error opening the file", filename)
@@ -84,7 +85,7 @@ func (Mem *MemoryManager) updateInfo(username string, filename string, data []by
 }
 
 func (Mem *MemoryManager) removeInfo(username string, filename string) error {
-	pathfile := fmt.Sprintf("%s/%s/%s", Mem.StorageDir, username, filename)
+	pathfile := fmt.Sprintf("%s/%s/%s%s", Mem.StorageDir, username, filename, ".json")
 	err := os.Remove(pathfile)
 	if err != nil {
 		fmt.Print("Error removing", filename)
@@ -94,7 +95,12 @@ func (Mem *MemoryManager) removeInfo(username string, filename string) error {
 }
 
 func (Mem *MemoryManager) getInfo(username string, filename string) (map[string]interface{}, error) {
-	pathfile := fmt.Sprintf("%s/%s/%s", Mem.StorageDir, username, filename)
+	var pathfile string
+	if strings.HasSuffix(filename, ".json") {
+		pathfile = fmt.Sprintf("%s/%s/%s", Mem.StorageDir, username, filename)
+	} else {
+		pathfile = fmt.Sprintf("%s/%s/%s%s", Mem.StorageDir, username, filename, ".json")
+	}
 	archivo, err := os.OpenFile(pathfile, os.O_RDONLY, 0666)
 	var jsonData map[string]interface{}
 	if err != nil {
@@ -104,6 +110,7 @@ func (Mem *MemoryManager) getInfo(username string, filename string) (map[string]
 	defer archivo.Close()
 	decoder := json.NewDecoder(archivo)
 	decoder.Decode(&jsonData)
+	fmt.Println(jsonData)
 	return jsonData, nil
 }
 
