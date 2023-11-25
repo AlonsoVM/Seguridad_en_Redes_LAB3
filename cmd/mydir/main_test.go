@@ -24,7 +24,10 @@ const passwordTest = "test123"
 const BadPasswordTest = "test1234"
 const userTest = "test"
 const tokenTest = "tokenTest"
+const badTokenTest = "BadtokenTest"
 const BadUserTest = "badtest"
+
+const stringToUpload = "\"Prueba123\""
 
 func initialice() {
 	ruta := "UsuariosTest.json"
@@ -163,18 +166,171 @@ func TestDocHandlerPOST(t *testing.T) {
 	r := gin.New()
 	r.POST("/:username/:doc_id", DocHandler)
 	initialice()
-	body := make(map[string]interface{})
-	body["doc_content"] = "Prueba"
+
+	body := map[string]interface{}{
+		"doc_content": "Prueba123",
+	}
 	bytesToSend, _ := json.Marshal(body)
-	token := "token" + " " + tokenTest
-	fmt.Println(token)
 	request, _ := http.NewRequest("POST", "/test/testjson", bytes.NewBuffer(bytesToSend))
+
+	token := "token" + " " + tokenTest
 	request.Header.Set("Authorization", token)
 
 	recorder := httptest.NewRecorder()
 
 	r.ServeHTTP(recorder, request)
 
-	fmt.Println(recorder.Body.String())
+	if recorder.Code != 200 {
+		t.Error("Error in POST document")
+	}
+
+}
+func TestDocHandlerPUT(t *testing.T) {
+	createToken()
+	gin.SetMode(gin.TestMode)
+	r := gin.New()
+	r.PUT("/:username/:doc_id", DocHandler)
+	initialice()
+
+	body := map[string]interface{}{
+		"doc_content": "Prueba123",
+	}
+	bytesToSend, _ := json.Marshal(body)
+	request, _ := http.NewRequest("PUT", "/test/testjson", bytes.NewBuffer(bytesToSend))
+
+	token := "token" + " " + tokenTest
+	request.Header.Set("Authorization", token)
+
+	recorder := httptest.NewRecorder()
+
+	r.ServeHTTP(recorder, request)
+
+	if recorder.Code != 200 {
+		t.Error("Error in POST document")
+	}
+
+}
+func TestDocHandlerGET(t *testing.T) {
+	createToken()
+	gin.SetMode(gin.TestMode)
+	r := gin.New()
+	r.GET("/:username/:doc_id", DocHandler)
+	initialice()
+
+	request, _ := http.NewRequest("GET", "/test/testjson", nil)
+	token := "token" + " " + tokenTest
+	request.Header.Set("Authorization", token)
+
+	recorder := httptest.NewRecorder()
+
+	r.ServeHTTP(recorder, request)
+	if recorder.Code != 200 {
+		t.Error("Error in GET document")
+	}
+}
+
+func TestDocHandlerPOSTRepeated(t *testing.T) {
+	createToken()
+	gin.SetMode(gin.TestMode)
+	r := gin.New()
+	r.POST("/:username/:doc_id", DocHandler)
+	initialice()
+
+	body := map[string]interface{}{
+		"doc_content": "Prueba123",
+	}
+	bytesToSend, _ := json.Marshal(body)
+	request, _ := http.NewRequest("POST", "/test/testjson", bytes.NewBuffer(bytesToSend))
+	token := "token" + " " + tokenTest
+	request.Header.Set("Authorization", token)
+
+	recorder := httptest.NewRecorder()
+
+	r.ServeHTTP(recorder, request)
+
+	if recorder.Code != 500 {
+		t.Error("Error in POST  repeated document")
+	}
+}
+
+func TestDocHandlerPOSTBadToken(t *testing.T) {
+	createToken()
+	gin.SetMode(gin.TestMode)
+	r := gin.New()
+	r.POST("/:username/:doc_id", DocHandler)
+	initialice()
+
+	body := map[string]interface{}{
+		"doc_content": "Prueba123",
+	}
+	bytesToSend, _ := json.Marshal(body)
+	request, _ := http.NewRequest("POST", "/test/testjson", bytes.NewBuffer(bytesToSend))
+	token := "token" + " " + badTokenTest
+	request.Header.Set("Authorization", token)
+
+	recorder := httptest.NewRecorder()
+
+	r.ServeHTTP(recorder, request)
+
+	if recorder.Code != 401 {
+		t.Error("Error in POST document with bad token")
+	}
+}
+
+func TestDocHandlerGETBadToken(t *testing.T) {
+	createToken()
+	gin.SetMode(gin.TestMode)
+	r := gin.New()
+	r.GET("/:username/:doc_id", DocHandler)
+	initialice()
+
+	request, _ := http.NewRequest("GET", "/test/testjson", nil)
+	token := "token" + " " + badTokenTest
+	request.Header.Set("Authorization", token)
+
+	recorder := httptest.NewRecorder()
+
+	r.ServeHTTP(recorder, request)
+	if recorder.Code != 401 {
+		t.Error("Error in GET document")
+	}
+}
+
+func TestDocHandlerGETALLDOCS(t *testing.T) {
+	createToken()
+	gin.SetMode(gin.TestMode)
+	r := gin.New()
+	r.GET("/:username/_all_docs", AllDocsHandler)
+	initialice()
+
+	request, _ := http.NewRequest("GET", "/test/_all_docs", nil)
+	token := "token" + " " + tokenTest
+	request.Header.Set("Authorization", token)
+
+	recorder := httptest.NewRecorder()
+
+	r.ServeHTTP(recorder, request)
+	if recorder.Code != 200 {
+		t.Error("Error in GET all document")
+	}
+}
+
+func TestDocHandlerDELETE(t *testing.T) {
+	createToken()
+	gin.SetMode(gin.TestMode)
+	r := gin.New()
+	r.DELETE("/:username/:doc_id", DocHandler)
+	initialice()
+
+	request, _ := http.NewRequest("DELETE", "/test/testjson", nil)
+	token := "token" + " " + tokenTest
+	request.Header.Set("Authorization", token)
+
+	recorder := httptest.NewRecorder()
+
+	r.ServeHTTP(recorder, request)
+	if recorder.Code != 200 {
+		t.Error("Error in DELETE document")
+	}
 
 }

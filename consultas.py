@@ -64,34 +64,43 @@ def PostDoc(token : str):
     ditAux["Tomillo"] = 2
     ditAux["Acciones"] = ["Remover", "limpiar"]
     ditAux2 = {}
-
+    f = open("iot.json", "rb")
+    data = f.read()
+    jsontodata = json.loads(data)
+    dataIndented = json.dumps(jsontodata, indent=2)
     ditAux2[DOCUMENT] = ditAux
-    resp = requests.post("http://myserver.local:5000/AlonsoVilla2233/test1", headers=dit, data=json.dumps(ditAux2))
+    resp = requests.post("http://myserver.local:5000/AlonsoVilla2233/mod", headers=dit, data=json.dumps(ditAux2, indent=2))
     print(resp.content.decode())
 
 def PutDoc(token : str):
     dit = {}
     dit[AUTHORIZATION] = AUTH_TOKEN + " " + token
     ditAux = {}
-    ditAux["Sal"] = 5
+    ditAux["sal"] = 5
     ditAux["Azucar"] = 2
-    ditAux["Soja"] = "medio vaso"
-    ditAux["Acciones"] = ["Remover", "limpiar", "colocar"]
     ditAux2 = {}
-    ditAux2[DOCUMENT] = ditAux
-    resp = requests.put("http://myserver.local:5000/Alonso3/test", headers=dit, data=json.dumps(ditAux2))
+    f = open("iot.json", "rb")
+    data = f.read()
+    jsontodata = json.loads(data)
+    print(jsontodata)
+    dataIndented = json.dumps(jsontodata, indent=2)
+    ditAux2[DOCUMENT] = jsontodata
+    print(json.dumps(ditAux2, indent=2))
+    len(json.dumps(ditAux2))
+
+    resp = requests.put("http://myserver.local:5000/AlonsoVilla2233/mod", headers=dit, data=json.dumps(ditAux2, indent=2))
     print(resp.content.decode())
 
 def GETDoc(token : str):
     dit = {}
     dit[AUTHORIZATION] = AUTH_TOKEN + " " + token
-    resp = requests.get("http://myserver.local:5000/Alonso3/test2", headers=dit)
+    resp = requests.get("http://myserver.local:5000/AlonsoVilla2233/test2", headers=dit)
     print(resp.content.decode())
 
 def DeleteDoc(token : str):
     dit = {}
     dit[AUTHORIZATION] = AUTH_TOKEN + " " + token
-    resp = requests.delete("http://myserver.local:5000/Alonso3/p1", headers=dit)
+    resp = requests.delete("http://myserver.local:5000/AlonsoVilla2233/mod", headers=dit)
     print(resp.content.decode())
 
 def GETALLDoc(token : str):
@@ -100,4 +109,4 @@ def GETALLDoc(token : str):
     resp = requests.get("http://myserver.local:5000/AlonsoVilla2233/_all_docs", headers=dit)
     print(resp.content.decode())
 token = login("AlonsoVilla2233", "qwe")
-GETALLDoc(token)
+DeleteDoc(token)

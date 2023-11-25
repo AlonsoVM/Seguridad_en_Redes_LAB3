@@ -3,7 +3,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 	"strings"
@@ -110,15 +109,12 @@ func parseBody(body io.ReadCloser) ([]byte, error) {
 
 func DocHandler(c *gin.Context) {
 	authHeader := c.Request.Header.Get("Authorization")
-	fmt.Println("auhtHeader", authHeader)
 	token, err := parseHeader(authHeader)
-	fmt.Println("handlertoken", token)
 	if err != nil {
 		c.String(http.StatusBadRequest, err.Error())
 		return
 	}
 	username, docId, err := parseParams(c.Params, token)
-	fmt.Println(username, docId)
 	if err != nil {
 		c.String(http.StatusUnauthorized, err.Error())
 		return
