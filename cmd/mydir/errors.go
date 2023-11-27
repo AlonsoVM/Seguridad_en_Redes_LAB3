@@ -5,7 +5,7 @@ type UserNotExists struct {
 }
 
 func (e *UserNotExists) Error() string {
-	return "The user " + e.User + "do not exist in the system"
+	return "The user " + e.User + " do not exist in the system"
 }
 
 type FileExits struct {
@@ -21,7 +21,7 @@ type UserExists struct {
 }
 
 func (e *UserExists) Error() string {
-	return "The user " + e.User + "do not exist in the system"
+	return "The user " + e.User + " exist in the system"
 }
 
 type InvalidPassword struct {

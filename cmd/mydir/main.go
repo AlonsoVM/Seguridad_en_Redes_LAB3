@@ -151,14 +151,14 @@ func DocHandler(c *gin.Context) {
 	} else if c.Request.Method == "GET" {
 		data, err := MemManager.getInfo(username, docId)
 		if err != nil {
-			c.String(http.StatusInternalServerError, err.Error())
+			c.String(http.StatusNotFound, err.Error())
 			return
 		}
 		c.IndentedJSON(http.StatusOK, data)
 	} else if c.Request.Method == "DELETE" {
 		err := MemManager.removeInfo(username, docId)
 		if err != nil {
-			c.String(http.StatusInternalServerError, err.Error())
+			c.String(http.StatusNotFound, err.Error())
 			return
 		}
 		c.IndentedJSON(http.StatusOK, "{}")
@@ -181,7 +181,7 @@ func AllDocsHandler(c *gin.Context) {
 
 	data, err := MemManager.getAllDoc(username)
 	if err != nil {
-		c.String(http.StatusInternalServerError, err.Error())
+		c.String(http.StatusNotFound, err.Error())
 		return
 	}
 

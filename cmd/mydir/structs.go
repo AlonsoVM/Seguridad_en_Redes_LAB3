@@ -102,21 +102,10 @@ func (Mem *MemoryManager) getInfo(username string, filename string) (interface{}
 	} else {
 		pathfile = fmt.Sprintf("%s/%s/%s%s", Mem.StorageDir, username, filename, ".json")
 	}
-	/*
-		archivo, err := os.OpenFile(pathfile, os.O_RDONLY, 0666)
-		var jsonData map[string]interface{}
-		if err != nil {
-			fmt.Print("Error opening the file", filename)
-			return jsonData, err
-		}
-		defer archivo.Close()
-		decoder := json.NewDecoder(archivo)
-		decoder.Decode(&jsonData)
-		fmt.Println(jsonData)
-		return jsonData, nil
-
-	*/
-	data, _ := os.ReadFile(pathfile)
+	data, err := os.ReadFile(pathfile)
+	if err != nil {
+		return response, err
+	}
 	json.Unmarshal(data, &response)
 	return response, nil
 }
@@ -174,13 +163,13 @@ func (tokenList *TokenManager) deleteOldTokens() {
 	for true {
 		tokenList.mutex.Lock()
 		for i, token := range tokenList.VolatileTokens {
-			if time.Now().Sub(token.Time).Seconds() > 120 {
+			if time.Now().Sub(token.Time).Seconds() > 300 {
 				tokenList.VolatileTokens = append(tokenList.VolatileTokens[:i], tokenList.VolatileTokens[i+1:]...)
 				fmt.Println("Removing token : ", token.Token)
 			}
 		}
 		tokenList.mutex.Unlock()
-		time.Sleep(8 * time.Second)
+		time.Sleep(10 * time.Second)
 	}
 }
 
@@ -220,7 +209,7 @@ func (UserL *UserManager) createUser(body io.ReadCloser) (User, error) {
 
 	json.Unmarshal(datosJson, &UserAux)
 	if UserL.UserExist(UserAux.UserName) {
-		return UserAux, &UserExists{"The user already exits"}
+		return UserAux, &UserExists{UserAux.UserName}
 	}
 
 	UserAux.Salt = fmt.Sprintf("%d", rand.Int())

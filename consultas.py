@@ -110,7 +110,7 @@ def GETDoc(token : str):
 def DeleteDoc(token : str):
     dit = {}
     dit[AUTHORIZATION] = AUTH_TOKEN + " " + token
-    resp = requests.delete("http://myserver.local:5000/AlonsoVilla2233/mod", headers=dit)
+    resp = requests.delete("http://myserver.local:5000/AlonsoVilla2233/iot", headers=dit)
     print(resp.content.decode())
 
 def GETALLDoc(token : str):
@@ -119,4 +119,4 @@ def GETALLDoc(token : str):
     resp = requests.get("http://myserver.local:5000/AlonsoVilla2233/_all_docs", headers=dit)
     print(resp.content.decode())
 token = login("AlonsoVilla2233", "qwe")
-GETALLDoc(token)
+DeleteDoc(token)
