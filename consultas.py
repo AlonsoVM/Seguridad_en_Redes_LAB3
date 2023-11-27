@@ -26,6 +26,18 @@ data = {
 {
 "nombre": "Sensor",
 "consumo": 0.1
+},
+{
+"nombre": "Sensor",
+"consumo": 0.1
+},
+{
+"nombre": "Sensor",
+"consumo": 0.1
+},
+{
+"nombre": "Sensor",
+"consumo": 0.1
 }
 ]
 }
@@ -82,19 +94,17 @@ def PutDoc(token : str):
     f = open("iot.json", "rb")
     data = f.read()
     jsontodata = json.loads(data)
-    print(jsontodata)
     dataIndented = json.dumps(jsontodata, indent=2)
     ditAux2[DOCUMENT] = jsontodata
-    print(json.dumps(ditAux2, indent=2))
     len(json.dumps(ditAux2))
 
-    resp = requests.put("http://myserver.local:5000/AlonsoVilla2233/mod", headers=dit, data=json.dumps(ditAux2, indent=2))
+    resp = requests.put("http://myserver.local:5000/AlonsoVilla2233/iot", headers=dit, data=json.dumps(ditAux2, indent=2))
     print(resp.content.decode())
 
 def GETDoc(token : str):
     dit = {}
     dit[AUTHORIZATION] = AUTH_TOKEN + " " + token
-    resp = requests.get("http://myserver.local:5000/AlonsoVilla2233/mod", headers=dit)
+    resp = requests.get("http://myserver.local:5000/AlonsoVilla2233/iot", headers=dit)
     print(resp.content.decode())
 
 def DeleteDoc(token : str):

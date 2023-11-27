@@ -19,8 +19,8 @@ type MemoryManager struct {
 	StorageDir string
 }
 
-func (Mem *MemoryManager) getAllDoc(username string) (map[string]map[string]interface{}, error) {
-	data := make(map[string]map[string]interface{})
+func (Mem *MemoryManager) getAllDoc(username string) (map[string]interface{}, error) {
+	data := make(map[string]interface{})
 	pathDir := fmt.Sprintf("%s/%s", Mem.StorageDir, username)
 	dir, err := os.Open(pathDir)
 	if err != nil {
@@ -94,24 +94,31 @@ func (Mem *MemoryManager) removeInfo(username string, filename string) error {
 	return nil
 }
 
-func (Mem *MemoryManager) getInfo(username string, filename string) (map[string]interface{}, error) {
+func (Mem *MemoryManager) getInfo(username string, filename string) (interface{}, error) {
 	var pathfile string
+	var response interface{}
 	if strings.HasSuffix(filename, ".json") {
 		pathfile = fmt.Sprintf("%s/%s/%s", Mem.StorageDir, username, filename)
 	} else {
 		pathfile = fmt.Sprintf("%s/%s/%s%s", Mem.StorageDir, username, filename, ".json")
 	}
-	archivo, err := os.OpenFile(pathfile, os.O_RDONLY, 0666)
-	var jsonData map[string]interface{}
-	if err != nil {
-		fmt.Print("Error opening the file", filename)
-		return jsonData, err
-	}
-	defer archivo.Close()
-	decoder := json.NewDecoder(archivo)
-	decoder.Decode(&jsonData)
-	fmt.Println(jsonData)
-	return jsonData, nil
+	/*
+		archivo, err := os.OpenFile(pathfile, os.O_RDONLY, 0666)
+		var jsonData map[string]interface{}
+		if err != nil {
+			fmt.Print("Error opening the file", filename)
+			return jsonData, err
+		}
+		defer archivo.Close()
+		decoder := json.NewDecoder(archivo)
+		decoder.Decode(&jsonData)
+		fmt.Println(jsonData)
+		return jsonData, nil
+
+	*/
+	data, _ := os.ReadFile(pathfile)
+	json.Unmarshal(data, &response)
+	return response, nil
 }
 
 type VolatileToken struct {

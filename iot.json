@@ -16,6 +16,18 @@
 {
 "nombre": "Sensor",
 "consumo": 0.1
-}
+},
+{
+    "nombre": "Sensor",
+    "consumo": 0.1
+    },
+    {
+        "nombre": "Sensor",
+        "consumo": 0.1
+        },
+        {
+            "nombre": "Sensor",
+            "consumo": 0.1
+            }
 ]
 }
