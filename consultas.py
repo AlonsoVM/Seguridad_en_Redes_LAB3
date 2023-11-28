@@ -119,4 +119,4 @@ def GETALLDoc(token : str):
     resp = requests.get("http://myserver.local:5000/AlonsoVilla2233/_all_docs", headers=dit)
     print(resp.content.decode())
 token = login("AlonsoVilla2233", "qwe")
-DeleteDoc(token)
+PostDoc(token)
