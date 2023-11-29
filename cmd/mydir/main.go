@@ -205,5 +205,5 @@ func main() {
 	r.GET("/:username/:doc_id", DocHandler)
 	r.DELETE("/:username/:doc_id", DocHandler)
 	r.GET("/:username/_all_docs", AllDocsHandler)
-	r.Run("myserver.local:5000") // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
+	r.RunTLS("myserver.local:5000", "certificate.crt", "private.key") // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
 }

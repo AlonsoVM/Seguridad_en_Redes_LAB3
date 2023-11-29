@@ -45,14 +45,14 @@ data = {
 def version(token: str):
     dit = {}
     dit[AUTH_TOKEN] = token
-    resp = requests.get("http://myserver.local:5000/version", headers= dit)
+    resp = requests.get("http://myserver.local:5000/version", headers= dit, verify=False)
     print(f'{resp.content.decode()} {resp.status_code}')
 
 def singup(username : str, password : str):
     dit = {}
     dit[USERNAME] = username
     dit[PASS] = password
-    resp = requests.post("http://myserver.local:5000/signup", data=json.dumps(dit))
+    resp = requests.post("https://myserver.local:5000/signup", data=json.dumps(dit), verify=False)
     print(resp.status_code)
     if resp.status_code == 200: print(json.loads(resp.content))
     else: print(resp.content.decode())
@@ -62,7 +62,7 @@ def login(username : str, password : str):
     dit = {}
     dit[USERNAME] = username
     dit[PASS] = password
-    resp = requests.post("http://myserver.local:5000/login", data=json.dumps(dit))
+    resp = requests.post("https://myserver.local:5000/login", data=json.dumps(dit), verify=False)
     print(resp.status_code) 
     if resp.status_code == 200: print(json.loads(resp.content))
     else: print(resp.content.decode())
@@ -81,7 +81,7 @@ def PostDoc(token : str):
     jsontodata = json.loads(data)
     dataIndented = json.dumps(jsontodata, indent=2)
     ditAux2[DOCUMENT] = jsontodata
-    resp = requests.post("http://myserver.local:5000/AlonsoVilla2233/iot", headers=dit, data=json.dumps(ditAux2, indent=2))
+    resp = requests.post("https://myserver.local:5000/AlonsoVilla2233/iot", headers=dit, data=json.dumps(ditAux2, indent=2),  verify=False)
     print(resp.content.decode())
 
 def PutDoc(token : str):
@@ -98,25 +98,25 @@ def PutDoc(token : str):
     ditAux2[DOCUMENT] = jsontodata
     len(json.dumps(ditAux2))
 
-    resp = requests.put("http://myserver.local:5000/AlonsoVilla2233/iot", headers=dit, data=json.dumps(ditAux2, indent=2))
+    resp = requests.put("https://myserver.local:5000/AlonsoVilla2233/iot", headers=dit, data=json.dumps(ditAux2, indent=2),  verify=False)
     print(resp.content.decode())
 
 def GETDoc(token : str):
     dit = {}
     dit[AUTHORIZATION] = AUTH_TOKEN + " " + token
-    resp = requests.get("http://myserver.local:5000/AlonsoVilla2233/iot", headers=dit)
+    resp = requests.get("https://myserver.local:5000/AlonsoVilla2233/iot", headers=dit,  verify=False)
     print(resp.content.decode())
 
 def DeleteDoc(token : str):
     dit = {}
     dit[AUTHORIZATION] = AUTH_TOKEN + " " + token
-    resp = requests.delete("http://myserver.local:5000/AlonsoVilla2233/iot", headers=dit)
+    resp = requests.delete("https://myserver.local:5000/AlonsoVilla2233/iot", headers=dit,  verify=False)
     print(resp.content.decode())
 
 def GETALLDoc(token : str):
     dit = {}
     dit[AUTHORIZATION] = AUTH_TOKEN + " " + token
-    resp = requests.get("http://myserver.local:5000/AlonsoVilla2233/_all_docs", headers=dit)
+    resp = requests.get("https://myserver.local:5000/AlonsoVilla2233/_all_docs", headers=dit, verify=False)
     print(resp.content.decode())
-token = login("AlonsoVilla2233", "qwe")
+token = singup("AlonsoVilla2233", "qwe")
 PostDoc(token)
